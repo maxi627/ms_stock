@@ -1,53 +1,82 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
+from marshmallow import ValidationError
 
-from app.mapping import StockSchema
-from app.services import StockService
+from app.mapping import StockSchema, ResponseSchema
+from app.services import StockService, ResponseBuilder
 
 Stock = Blueprint('Stock', __name__)
 service = StockService()
-Stock_schema =StockSchema()
+Stock_schema = StockSchema()
+response_schema = ResponseSchema()
 
-"""
-Obtiene todos las Stocks
-"""
 @Stock.route('/Stocks', methods=['GET'])
 def all():
-    resp = Stock_schema.dump(service.get_all(), many=True) 
-    return resp, 200
+    response_builder = ResponseBuilder()
+    try:
+        data = Stock_schema.dump(service.get_all(), many=True)
+        response_builder.add_message("Stocks found").add_status_code(200).add_data(data)
+        return response_schema.dump(response_builder.build()), 200
+    except Exception as e:
+        response_builder.add_message("Error fetching Stocks").add_status_code(500).add_data(str(e))
+        return response_schema.dump(response_builder.build()), 500
 
-"""
-Obtiene una Stock por id
-"""
 @Stock.route('/Stocks/<int:id>', methods=['GET'])
 def one(id):
-    resp = Stock_schema.dump(service.get_by_id(id)) 
-    return resp, 200
+    response_builder = ResponseBuilder()
+    try:
+        data = service.get_by_id(id)
+        if data:
+            serialized_data = Stock_schema.dump(data)
+            response_builder.add_message("Stock found").add_status_code(200).add_data(serialized_data)
+            return response_schema.dump(response_builder.build()), 200
+        else:
+            response_builder.add_message("Stock not found").add_status_code(404).add_data({'id': id})
+            return response_schema.dump(response_builder.build()), 404
+    except Exception as e:
+        response_builder.add_message("Error fetching Stock").add_status_code(500).add_data(str(e))
+        return response_schema.dump(response_builder.build()), 500
 
-"""
-Crea nueva Stock
-"""
 @Stock.route('/Stocks', methods=['POST'])
 def create():
-    Stock = Stock_schema.load(request.json)
-    resp = Stock_schema.dump(service.create(Stock))
-    return resp, 201
+    response_builder = ResponseBuilder()
+    try:
+        stock = Stock_schema.load(request.json)
+        data = Stock_schema.dump(service.create(stock))
+        response_builder.add_message("Stock created").add_status_code(201).add_data(data)
+        return response_schema.dump(response_builder.build()), 201
+    except ValidationError as err:
+        response_builder.add_message("Validation error").add_status_code(422).add_data(err.messages)
+        return response_schema.dump(response_builder.build()), 422
+    except Exception as e:
+        response_builder.add_message("Error creating Stock").add_status_code(500).add_data(str(e))
+        return response_schema.dump(response_builder.build()), 500
 
-"""
-Actualiza una Stock existente
-"""
 @Stock.route('/Stocks/<int:id>', methods=['PUT'])
 def update(id):
-    Stock = Stock_schema.load(request.json)
-    resp = Stock_schema.dump(service.update(id, Stock))
-    return resp, 200
+    response_builder = ResponseBuilder()
+    try:
+        stock = Stock_schema.load(request.json)
+        data = Stock_schema.dump(service.update(id, stock))
+        response_builder.add_message("Stock updated").add_status_code(200).add_data(data)
+        return response_schema.dump(response_builder.build()), 200
+    except ValidationError as err:
+        response_builder.add_message("Validation error").add_status_code(422).add_data(err.messages)
+        return response_schema.dump(response_builder.build()), 422
+    except Exception as e:
+        response_builder.add_message("Error updating Stock").add_status_code(500).add_data(str(e))
+        return response_schema.dump(response_builder.build()), 500
 
-"""
-Elimina una Stock existente
-"""
 @Stock.route('/Stocks/<int:id>', methods=['DELETE'])
 def delete(id):
-    msg = "Stock eliminado correctamente"
-    resp = service.delete(id)
-    if not resp:
-        msg = "No se pudo eliminar el Stock"
-    return jsonify(msg), 204
+    response_builder = ResponseBuilder()
+    try:
+        if service.delete(id):
+            response_builder.add_message("Stock deleted").add_status_code(200).add_data({'id': id})
+            return response_schema.dump(response_builder.build()), 200
+        else:
+            response_builder.add_message("Stock not found").add_status_code(404).add_data({'id': id})
+            return response_schema.dump(response_builder.build()), 404
+    except Exception as e:
+        response_builder.add_message("Error deleting Stock").add_status_code(500).add_data(str(e))
+        return response_schema.dump(response_builder.build()), 500
+        
