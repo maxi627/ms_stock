@@ -4,6 +4,12 @@ from app.repositories import StockRepository
 
 repository = StockRepository()
 
+
+
+#TODO:refactorizar
+#TODO: falta manejar los egresos/ingresos 
+#TODO: un bloqueador en redis por producto para resolver problemas de concurrenciass 
+
 class StockService:
     def all(self) -> list[Stock]:
         result = cache.get('stocks')
