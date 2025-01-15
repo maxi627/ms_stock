@@ -3,11 +3,11 @@ from typing import List
 from app import db
 from app.models import Stock
 
-from .repository import Repository_delete, Repository_get, Repository_save
+from .repository import Repository_delete, Repository_get, Repository_add
 
 
-class StockRepository(Repository_save, Repository_get, Repository_delete):
-    def save(self, entity: Stock) -> Stock:
+class StockRepository(Repository_add, Repository_get, Repository_delete):
+    def add(self, entity: Stock) -> Stock:
         db.session.add(entity)
         db.session.commit()
         return entity

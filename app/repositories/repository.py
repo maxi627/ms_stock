@@ -5,9 +5,9 @@ from app import db
 
 T = TypeVar('T')
 
-class Repository_save(ABC):
+class Repository_add(ABC):
     @abstractmethod
-    def save(self, entity: T) -> T:
+    def add(self, entity: T) -> T:
         db.session.add(entity)
         db.session.commit()
         return entity
