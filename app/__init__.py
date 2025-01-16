@@ -9,6 +9,18 @@ from app.config import cache_config, factory
 db = SQLAlchemy()
 cache = Cache()
 
+import redis
+from app.config.cache_config import cache_config
+
+# Crear una instancia de Redis
+redis_client = redis.StrictRedis(
+    host=cache_config['REDIS_HOST'],
+    port=cache_config['REDIS_PORT'],
+    db=cache_config['REDIS_DB'],
+    password=cache_config.get('REDIS_PASSWORD', None),
+    decode_responses=True
+)
+
 def create_app():
     """Crea e inicializa la aplicación Flask."""
     app = Flask(__name__)
