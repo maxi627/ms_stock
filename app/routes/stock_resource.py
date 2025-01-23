@@ -9,18 +9,18 @@ service = StockService()
 Stock_schema = StockSchema()
 response_schema = ResponseSchema()
 
-@Stock.route('/Stocks', methods=['GET'])
+@Stock.route('/stock', methods=['GET'])
 def all():
     response_builder = ResponseBuilder()
     try:
         data = Stock_schema.dump(service.get_all(), many=True)
-        response_builder.add_message("Stocks found").add_status_code(200).add_data(data)
+        response_builder.add_message("Stock found").add_status_code(200).add_data(data)
         return response_schema.dump(response_builder.build()), 200
     except Exception as e:
-        response_builder.add_message("Error fetching Stocks").add_status_code(500).add_data(str(e))
+        response_builder.add_message("Error fetching Stock").add_status_code(500).add_data(str(e))
         return response_schema.dump(response_builder.build()), 500
 
-@Stock.route('/Stocks/<int:id>', methods=['GET'])
+@Stock.route('/stock/<int:id>', methods=['GET'])
 def one(id):
     response_builder = ResponseBuilder()
     try:
@@ -36,7 +36,7 @@ def one(id):
         response_builder.add_message("Error fetching Stock").add_status_code(500).add_data(str(e))
         return response_schema.dump(response_builder.build()), 500
 
-@Stock.route('/Stocks', methods=['POST'])
+@Stock.route('/stock', methods=['POST'])
 def create():
     response_builder = ResponseBuilder()
     try:
@@ -51,7 +51,7 @@ def create():
         response_builder.add_message("Error creating Stock").add_status_code(500).add_data(str(e))
         return response_schema.dump(response_builder.build()), 500
 
-@Stock.route('/Stocks/<int:id>', methods=['PUT'])
+@Stock.route('/stock/<int:id>', methods=['PUT'])
 def update(id):
     response_builder = ResponseBuilder()
     try:
@@ -66,7 +66,7 @@ def update(id):
         response_builder.add_message("Error updating Stock").add_status_code(500).add_data(str(e))
         return response_schema.dump(response_builder.build()), 500
 
-@Stock.route('/Stocks/<int:id>', methods=['DELETE'])
+@Stock.route('/stock/<int:id>', methods=['DELETE'])
 def delete(id):
     response_builder = ResponseBuilder()
     try:
