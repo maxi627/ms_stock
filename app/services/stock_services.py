@@ -53,10 +53,36 @@ class StockService:
         :param stock: Objeto Stock a agregar.
         :return: Objeto Stock recién creado.
         """
-        new_stock = self.repository.save(stock)
+        new_stock = self.repository.add(stock)
         cache.set(f'stock_{new_stock.id}', new_stock, timeout=self.CACHE_TIMEOUT)
         cache.delete('stocks')  # Invalida la lista de stocks en caché
         return new_stock
+
+    def update(self, stock_id: int, updated_stock: Stock) -> Stock:
+        """
+        Actualiza un stock existente.
+        :param stock_id: ID del stock a actualizar.
+        :param updated_stock: Datos del stock actualizado.
+        :return: Objeto Stock actualizado.
+        """
+        with self.redis_lock(stock_id):
+            existing_stock = self.find(stock_id)
+            if not existing_stock:
+                raise Exception(f"Stock con ID {stock_id} no encontrado.")
+
+            # Actualizar los datos del stock existente
+            existing_stock.nombre = updated_stock.nombre
+            existing_stock.cantidad = updated_stock.cantidad
+            existing_stock.precio = updated_stock.precio
+            
+            saved_stock = self.repository.save(existing_stock)
+            
+            # Actualizar la caché
+            cache.set(f'stock_{stock_id}', saved_stock, timeout=self.CACHE_TIMEOUT)
+            cache.delete('stocks')  # Invalida la lista de stocks en caché
+
+            return saved_stock
+
 
     def delete(self, stock_id: int) -> bool:
         """

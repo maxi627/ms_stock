@@ -13,7 +13,7 @@ response_schema = ResponseSchema()
 def all():
     response_builder = ResponseBuilder()
     try:
-        data = Stock_schema.dump(service.get_all(), many=True)
+        data = Stock_schema.dump(service.all(), many=True)
         response_builder.add_message("Stock found").add_status_code(200).add_data(data)
         return response_schema.dump(response_builder.build()), 200
     except Exception as e:
@@ -24,7 +24,7 @@ def all():
 def one(id):
     response_builder = ResponseBuilder()
     try:
-        data = service.get_by_id(id)
+        data = service.find(id)
         if data:
             serialized_data = Stock_schema.dump(data)
             response_builder.add_message("Stock found").add_status_code(200).add_data(serialized_data)
@@ -37,11 +37,11 @@ def one(id):
         return response_schema.dump(response_builder.build()), 500
 
 @Stock.route('/stock', methods=['POST'])
-def create():
+def add():
     response_builder = ResponseBuilder()
     try:
         stock = Stock_schema.load(request.json)
-        data = Stock_schema.dump(service.create(stock))
+        data = Stock_schema.dump(service.add(stock))
         response_builder.add_message("Stock created").add_status_code(201).add_data(data)
         return response_schema.dump(response_builder.build()), 201
     except ValidationError as err:
