@@ -5,10 +5,7 @@ from contextlib import contextmanager
 import time
 
 class StockService:
-    """
-    Servicio para gestionar el stock, incluyendo operaciones de caché, persistencia,
-    manejo de egresos/ingresos y bloqueos en Redis para resolver problemas de concurrencia.
-    """
+
     CACHE_TIMEOUT = 60  # Tiempo de expiración de caché en segundos
     REDIS_LOCK_TIMEOUT = 10  # Tiempo de bloqueo en Redis en segundos
 
