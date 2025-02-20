@@ -2,7 +2,7 @@ services:
   ms-stock:
     build:
       context: .
-    image: ms-stock:v1.0
+    image: ms-stock:v1.1
     container_name: stock_service
     environment:
       - FLASK_ENV=development        #cambiar según el entorno a usar (development/production)

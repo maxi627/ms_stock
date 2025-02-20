@@ -2,14 +2,16 @@ import os
 from flask import Flask
 from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
-from app.config import cache_config, factory
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import redis
 import logging
+from app.config import cache_config, factory
+
 
 # Configuración de logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 # Instancia global de extensiones
 db = SQLAlchemy()
@@ -21,7 +23,10 @@ redis_port = int(os.getenv('REDIS_PORT', 6379))
 redis_password = os.getenv('REDIS_PASSWORD', '')
 redis_db = int(os.getenv('REDIS_DB', 0))
 
-# Crear una instancia de Redis
+# URI de Redis para Flask-Limiter
+redis_uri = f"redis://{redis_host}:{redis_port}/{redis_db}"
+
+# Crear una instancia de Redis para otras operaciones
 redis_client = redis.StrictRedis(
     host=redis_host,
     port=redis_port,
@@ -30,7 +35,14 @@ redis_client = redis.StrictRedis(
     decode_responses=True
 )
 
-# Verificar la conexión
+# Inicializar Flask-Limiter con Redis como backend
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["10 per minute"],
+    storage_uri=redis_uri  # ✅ Se usa la URI de Redis
+)
+
+# Verificar la conexión a Redis
 try:
     redis_client.ping()
     logger.info("Conexión a Redis exitosa.")
@@ -46,13 +58,14 @@ def create_app():
     try:
         app.config.from_object(factory(app_context))
         app.config.update(cache_config)  # Agregar configuración de caché al app.config
-    except KeyError as e:
-        raise RuntimeError(f"Error al cargar la configuración: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Error al cargar la configuración para el entorno {app_context}: {e}")
 
     # Inicializar extensiones
     try:
         db.init_app(app)
-        cache.init_app(app)  # Inicializa la caché usando app.config
+        cache.init_app(app, config=cache_config)
+        limiter.init_app(app)  # ✅ Inicializa Flask-Limiter con la app
     except Exception as e:
         raise RuntimeError(f"Error al inicializar extensiones: {e}")
 
@@ -69,4 +82,3 @@ def create_app():
         return {"message": "El servicio de stocks está en funcionamiento"}
 
     return app
-
