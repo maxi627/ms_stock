@@ -1,5 +1,5 @@
-from app import cache, redis_client  # Se asume que `redis_client` es una instancia de Redis ya configurada
-from app.models import Stock
+from app import cache, redis_client  
+from app.models import Stock    
 from app.repositories import StockRepository
 from contextlib import contextmanager
 import time
@@ -14,20 +14,16 @@ class StockService:
 
     @contextmanager
     def redis_lock(self, stock_id: int):
-        """
-        Context manager para gestionar el bloqueo de recursos en Redis.
-        :param stock_id: ID del stock que se bloqueará.
-        """
         lock_key = f"stock_lock_{stock_id}"
         lock_value = str(time.time())
-        
-        # Intentar adquirir el bloqueo
+
         if redis_client.set(lock_key, lock_value, ex=self.REDIS_LOCK_TIMEOUT, nx=True):
             try:
-                yield  # Permite la ejecución del bloque protegido
+                yield
             finally:
-                # Eliminar el bloqueo después de usarlo
-                redis_client.delete(lock_key)
+               
+                if redis_client.get(lock_key) == lock_value:
+                    redis_client.delete(lock_key)
         else:
             raise Exception(f"El recurso está bloqueado para el stock {stock_id}.")
 
