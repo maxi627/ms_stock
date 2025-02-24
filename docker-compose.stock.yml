@@ -27,13 +27,12 @@ services:
 
     networks:
       - red1
-    ports:
-      - "5001:5001"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ms-stock.rule=Host(`stock.localhost`) && PathPrefix(`/api/v1`)"
       - "traefik.http.services.ms-stock.loadbalancer.server.port=5001"
-
+    deploy:
+      replicas: 1  # Número de instancias que deseas
 networks:
   red1:
     external: true

@@ -11,6 +11,7 @@ services:
       - "--entrypoints.web.address=:80"  # Entrada HTTP
       - "--entrypoints.websecure.address=:443"  # Entrada HTTPS
       - "--providers.docker=true"  # Habilita el proveedor de Docker para Traefik
+      - "--log.level=DEBUG"  # Cambia el nivel de logueo a DEBUG para más detalles
     ports:
       - "80:80"       # Puerto HTTP
       - "443:443"     # Puerto HTTPS
