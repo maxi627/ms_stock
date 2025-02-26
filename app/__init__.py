@@ -39,7 +39,7 @@ redis_client = redis.StrictRedis(
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=["10 per minute"],
-    storage_uri=redis_uri  # ✅ Se usa la URI de Redis
+    storage_uri=redis_uri  # Se usa la URI de Redis
 )
 
 # Verificar la conexión a Redis
